@@ -1,0 +1,33 @@
+.screen {
+  color: chartreuse;
+  background-color: black;  
+  font-family: monospace;
+  width: 500px;
+  height: 500px;
+  padding: 3px;
+  position: relative;
+}
+
+.row {
+  display: block;
+  height: 17px;
+}
+
+.col {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+}
+
+.cursor {
+  background-color: chartreuse;
+  color: black;
+}
+
+.bottom-line {
+  width: calc(100% - 3px);
+  position: absolute;
+  bottom: 0px;
+  display: flex;
+  justify-content: space-between; 
+}

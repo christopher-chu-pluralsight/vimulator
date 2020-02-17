@@ -4,7 +4,7 @@ import useKeyboard from '../hooks/use-keyboard'
 
 const NORMAL = 'NORMAL'
 const INSERT = 'INSERT'
-const IGNORED_KEYS = ['Meta', 'Shift', 'Control', 'Alt']
+const IGNORED_KEYS = ['Meta', 'Shift', 'Control', 'Alt', 'Tab']
 
 export default function useVim() {
   const { key, keyDate } = useKeyboard()
@@ -21,6 +21,32 @@ export default function useVim() {
           case 'i':
             setMode(INSERT)
             break
+
+          case 'o':
+            insertRowBelow()
+            setMode(INSERT)
+            break
+
+          case 'ArrowLeft':
+          case 'h':
+            moveCursorLeft()
+            break
+
+          case 'ArrowDown':
+          case 'j':
+            moveCursorDown()
+            break
+
+          case 'ArrowUp':
+          case 'k':
+            moveCursorUp()
+            break
+
+          case 'ArrowRight':
+          case 'l':
+            moveCursorRight()
+            break
+
           default:
             break
         }
@@ -30,14 +56,34 @@ export default function useVim() {
           case 'Escape':
             setMode(NORMAL)
             break
+
           case 'Backspace':
             deleteCharacter()
             break
+
           case 'Enter':
-            insertRow()
+            insertRowBelow()
             break
+
+          case 'ArrowLeft':
+            moveCursorLeft()
+            break
+
+          case 'ArrowDown':
+            moveCursorDown()
+            break
+
+          case 'ArrowUp':
+            moveCursorUp()
+            break
+
+          case 'ArrowRight':
+            moveCursorRight()
+            break
+
           case null:
             break
+
           default:
             addCharacter(key)
             break
@@ -52,15 +98,15 @@ export default function useVim() {
     mode,
     text,
     cursor: { 
-      row: cursorRow + 1,
-      col: cursorCol + 1,
+      row: cursorRow,
+      col: cursorCol,
     },
   }
 
   function addCharacter(char) {
     // TODO: not immutable
     // TODO: figure out performance impact of index keys
-    text[cursorRow] = text[cursorRow].concat(char)
+    text[cursorRow].splice(cursorCol, 0, char)
 
     setCursorCol((prevCol) => prevCol + 1)
     setText(text)
@@ -69,7 +115,7 @@ export default function useVim() {
   function deleteCharacter() {
     if (cursorCol > 0) {
       // TODO: not immutable
-      text[cursorRow] = text[cursorRow].slice(0, -1)
+      text[cursorRow].splice(cursorCol - 1, 1)
       setCursorCol((prevCol) => prevCol - 1)
       setText(text)
     } else {
@@ -80,17 +126,47 @@ export default function useVim() {
   function deleteRow() {
     if (cursorRow > 0) {
       const currentRow = text[cursorRow]
+      const rowAbove = text[cursorRow - 1]
       // TODO: carry over remaining contents to previous row
       //    text[cursorRow - 1] = text[cursorRow - 1].concat(currentRow)
       setCursorRow((prevRow) => prevRow - 1)
-      setCursorCol(0)
+      setCursorCol(rowAbove.length)
       setText(text.filter((_value, index) => index !== cursorRow))
     }
   }
 
-  function insertRow() {
+  function insertRowBelow() {
     setText([ ...text, [] ])
     setCursorCol(0)
     setCursorRow((prevRow) => prevRow + 1)
+  }
+
+  function moveCursorLeft() {
+    if (cursorCol > 0) {
+      setCursorCol((prevCol) => prevCol - 1)
+    }
+  }
+
+  function moveCursorUp() {
+    console.log('upd')
+    if (cursorRow > 0) {
+      const rowAbove = text[cursorRow - 1]
+      setCursorCol((prevCol) => Math.min(rowAbove.length, prevCol))
+      setCursorRow((prevRow) => prevRow - 1)
+    }
+  }
+
+  function moveCursorDown() {
+    if (cursorRow < text.length - 1) {
+      const rowBelow = text[cursorRow + 1]
+      setCursorCol((prevCol) => Math.min(rowBelow.length, prevCol))
+      setCursorRow((prevRow) => prevRow + 1)
+    }
+  }
+
+  function moveCursorRight() {
+    if (cursorCol < text[cursorRow].length) {
+      setCursorCol((prevCol) => prevCol + 1)
+    }
   }
 }
