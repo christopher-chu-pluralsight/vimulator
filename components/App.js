@@ -1,45 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
-import useKeyboard from '../hooks/use-keyboard'
-
-const MODES = {
-  NORMAL: 'NORMAL',
-  INSERT: 'INSERT',
-}
-
-function useVim(key) {
-  const [ mode, setMode ] = useState(MODES.NORMAL)
-
-  useEffect(() => {
-    switch(key) {
-      case 'i':
-        setMode(MODES.INSERT)
-        break;
-      case 'Escape':
-        setMode(MODES.NORMAL)
-        break;
-      default:
-        break;
-    }
-
-    return () => {}
-  }, [ key ]);
-
-
-  return mode  
-}
+import useVim from '../hooks/use-vim'
 
 const App = () => {
-  const key = useKeyboard()
-
-  const mode = useVim(key)
+  const [ mode, text ] = useVim()
 
   return (
-    <div>
-      Key: {key}
-      <br/>
-      Mode: {mode}
-    </div>
+    <>
+      <div>
+        Text: {text}
+      </div>
+      <div>
+        Mode: {mode}
+      </div>
+    </>
   )
 }
 
