@@ -22,8 +22,18 @@ export default function useVim() {
             setMode(INSERT)
             break
 
+          case 'a':
+            setMode(INSERT)
+            setCursorCol((prevCol) => prevCol + 1)
+            break
+
           case 'o':
-            insertRowBelow()
+            insertNewRowBelow()
+            setMode(INSERT)
+            break
+
+          case 'O':
+            insertNewRowAbove()
             setMode(INSERT)
             break
 
@@ -128,7 +138,7 @@ export default function useVim() {
       const currentRow = text[cursorRow]
       const rowAbove = text[cursorRow - 1]
       // TODO: carry over remaining contents to previous row
-      //    text[cursorRow - 1] = text[cursorRow - 1].concat(currentRow)
+      text[cursorRow - 1] = text[cursorRow - 1].concat(currentRow)
       setCursorRow((prevRow) => prevRow - 1)
       setCursorCol(rowAbove.length)
       setText(text.filter((_value, index) => index !== cursorRow))
@@ -136,9 +146,31 @@ export default function useVim() {
   }
 
   function insertRowBelow() {
-    setText([ ...text, [] ])
+    const currentRow = text[cursorRow]
+    if (cursorCol < currentRow.length) {
+      const leftHalf = currentRow.slice(0, cursorCol)
+      const rightHalf = currentRow.slice(cursorCol)
+      text[cursorRow] = leftHalf
+      text.splice(cursorRow + 1, 0, rightHalf)
+      setText(text)
+      setCursorCol(0)
+      setCursorRow((prevRow) => prevRow + 1)
+    } else {
+      insertNewRowBelow()
+    }
+  }
+
+  function insertNewRowBelow() {
+    text.splice(cursorRow + 1, 0, [])
+    setText(text)
     setCursorCol(0)
     setCursorRow((prevRow) => prevRow + 1)
+  }
+
+  function insertNewRowAbove() {
+    text.splice(cursorRow, 0, [])
+    setText(text)
+    setCursorCol(0)
   }
 
   function moveCursorLeft() {
@@ -148,7 +180,6 @@ export default function useVim() {
   }
 
   function moveCursorUp() {
-    console.log('upd')
     if (cursorRow > 0) {
       const rowAbove = text[cursorRow - 1]
       setCursorCol((prevCol) => Math.min(rowAbove.length, prevCol))
